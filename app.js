@@ -71,4 +71,9 @@ app.use((error, req, res, next) => {
 
 app.use(errorController.get404);
 
-app.listen(8080);
+const port = process.env.PORT || 8000;
+
+// app.listen(8080);
+app.listen(port, () => {
+  console.log("App is running on port " + port);
+});
