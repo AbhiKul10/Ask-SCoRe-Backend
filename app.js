@@ -47,7 +47,7 @@ const swaggerOptions = {
 
 const swaggerDocs = swaggerJsDocs(swaggerOptions);
 
-app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
+app.use("/", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
