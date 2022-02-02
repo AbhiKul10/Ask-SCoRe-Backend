@@ -29,7 +29,7 @@ const swaggerOptions = {
   },
   components: {
     securitySchemes: {
-      jwt: {
+      bearerAuth: {
         type: "http",
         scheme: "bearer",
         in: "header",
@@ -39,7 +39,7 @@ const swaggerOptions = {
   }
   ,
   security: [{
-    jwt: []
+    bearerAuth: []
   }],
   customCss: ".swagger-ui .topbar { display: none }",
   apis: ["./routes/*.js"],

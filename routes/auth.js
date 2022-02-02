@@ -6,16 +6,30 @@ const isAuth = require("../middleware/is-auth");
 
 const router = express.Router();
 
-/***
+/**
  * @swagger
- * /feed/posts:
- *  get:
- *      description: Get Products
- *      responses:
- *          200:
- *              description: OK
- *          500:
- *              description: Internal Server Error
+ * components:
+ *   schemas:
+ *     SignUp:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *         - name
+ *       properties:
+ *         email:
+ *           type: string
+ *           description: Email of the User
+ *         password:
+ *           type: string
+ *           description: Paassword
+ *         name:
+ *           type: string
+ *           descripton: Name of the User
+ *       example:
+ *         email: xyz@email.com
+ *         password: xxxxxxxxx
+ *         name: Abhi
  *
  */
 
@@ -23,42 +37,71 @@ const router = express.Router();
  * @swagger
  * components:
  *   schemas:
- *     Post:
+ *     Login:
  *       type: object
  *       required:
- *         - title
- *         - content
+ *         - email
+ *         - password
+ *         - name
  *       properties:
- *         title:
+ *         email:
  *           type: string
- *           description: title of post
- *         content:
+ *           description: Email of the User
+ *         password:
  *           type: string
- *           descripton: content of post *
+ *           description: Paassword
  *       example:
- *         title: my title
- *         content: my article
+ *         email: xyz@email.com
+ *         password: xxxxxxxxx
  *
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Refresh:
+ *       type: object
+ *       required:
+ *         - refreshToken
+ *       properties:
+ *         refreshToken:
+ *           type: string
+ *           description: Refresh Token
+ *       example:
+ *         refreshToken: xxxxxxxxxxxxxx
+ *
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Forgot-Password:
+ *       type: object
+ *       required:
+ *         - email
+ *       properties:
+ *         email:
+ *           type: string
+ *           description: Email of the User
+ *       example:
+ *         email: xyz@email.com
+ * 
  */
 
 /***
  * @swagger
  * /auth/all:
  *   get:
+ *     security:
+ *       - bearerAuth: []
  *     summary: Get all Users
  *     tags: [AUTH]
- *     security:
- *	     - jwt: []
  *     requestBody:
  *       required: false
- *       content:
- *         application/json:
- *           schema:
- *                      type: object
- *                      properties:
- *                          jwt:
- *                              type: string
- *                              default: TestUser
+ *     parameters:
+ *      
  *     responses:
  *       200:
  *         description: The book was successfully created
@@ -79,10 +122,43 @@ const router = express.Router();
  *           schema:
  *                      type: object
  *                      properties:
- *                          title:
+ *                          email:
  *                              type: string
- *                              default: TestUser
- *                          content:
+ *                              default: TestEmail
+ *                          password:
+ *                              type: string
+ *                              default: TestPassword
+ *                          name:
+ *                              type: string
+ *                              default: TestName
+ *     responses:
+ *       201:
+ *         description: Successfull
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SignUp'
+ *       500:
+ *         description: Some server error
+ */
+
+/***
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: User Login
+ *     tags: [AUTH]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *                      type: object
+ *                      properties:
+ *                          email:
+ *                              type: string
+ *                              default: TestEmail
+ *                          password:
  *                              type: string
  *                              default: TestPassword
  *     responses:
@@ -91,36 +167,89 @@ const router = express.Router();
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Post'
+ *               $ref: '#/components/schemas/Login'
+ *       401:
+ *         description: Wrong Password
  *       500:
  *         description: Some server error
  */
 
 /***
  * @swagger
- * /feed/post:
- *  post:
- *      description: Post New Feeds
- *      requestBody:
- *          required: true
- *          content:
- *              application/json:
- *                  schema:
+ * /auth/forgot-password:
+ *   post:
+ *     summary: Forgot Password
+ *     tags: [AUTH]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
  *                      type: object
  *                      properties:
- *                          title:
+ *                          email:
  *                              type: string
- *                              default: TestUser
- *                          content:
- *                              type: string
- *                              default: TestPassword
- *      responses:
- *       200:
- *         description: The book was successfully created
+ *                              default: TestEmail
+ *     responses:
+ *       201:
+ *         description: Successfull
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Post'
+ *               $ref: '#/components/schemas/Forgot-Password'
+ *       401:
+ *         description: User Not Found
+ *       500:
+ *         description: Some server error
+ */
+
+/***
+ * @swagger
+ * /auth/refresh-token:
+ *   post:
+ *     summary: Refresh Tokens
+ *     tags: [AUTH]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *                      type: object
+ *                      properties:
+ *                          refreshToken:
+ *                              type: string
+ *                              default: TestToken
+ *     responses:
+ *       200:
+ *         description: Successfull
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Refresh'
+ *       401:
+ *         description: User Not Found
+ *       500:
+ *         description: Some server error
+ */
+
+/***
+ * @swagger
+ * /auth/reset-password/{fToken}:
+ *   post:
+ *     summary: Refresh Tokens
+ *     tags: [AUTH]
+ *     parameters:
+ *       - name: id
+ *       - in: path
+ *     responses:
+ *       200:
+ *         description: Successfull
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Refresh'
+ *       401:
+ *         description: User Not Found
  *       500:
  *         description: Some server error
  */
