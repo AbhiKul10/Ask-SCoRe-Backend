@@ -87,7 +87,7 @@ const router = express.Router();
  *           description: Email of the User
  *       example:
  *         email: xyz@email.com
- * 
+ *
  */
 
 /***
@@ -98,10 +98,6 @@ const router = express.Router();
  *       - bearerAuth: []
  *     summary: Get all Users
  *     tags: [AUTH]
- *     requestBody:
- *       required: false
- *     parameters:
- *      
  *     responses:
  *       200:
  *         description: The book was successfully created
@@ -255,6 +251,7 @@ const router = express.Router();
  */
 
 router.get("/all", isAuth, authController.send_message);
+
 router.post(
   "/signup",
   [
@@ -271,11 +268,12 @@ router.post(
         });
       })
       .normalizeEmail(),
-    body("password").trim().isLength({ min: 8 }),
-    body("name").trim().not().isEmpty(),
+    body("password").trim().isLength({ min: 5 }).withMessage("Please Enter Valid Password"),
+    body("name").trim().not().isEmpty().withMessage("Please Enter Valid Name"),
   ],
   authController.signup
 );
+
 router.post("/login", authController.login);
 
 router.use("/forgot-password", authController.postForgot);

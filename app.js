@@ -21,33 +21,30 @@ app.use(express.static(path.join(__dirname, "public")));
 
 const swaggerOptions = {
   swaggerDefinition: {
-    openapi: "3.0.0",
+    openapi: "3.0.1",
     info: {
-      title: "REST API using Node",
+      title: "Ask-SCoRe-Backend",
       version: "1.0.0",
+      description: "Backend for Ask-SCoRe mobile application",
     },
-  },
-  components: {
-    securitySchemes: {
-      bearerAuth: {
-        type: "http",
-        scheme: "bearer",
-        in: "header",
-        bearerFormat: "JWT"
+    basePath: "/",
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
       },
-    }
-  }
-  ,
-  security: [{
-    bearerAuth: []
-  }],
-  customCss: ".swagger-ui .topbar { display: none }",
+    },
+    // security: [{
+    //   bearerAuth: []
+    // }]
+  },
   apis: ["./routes/*.js"],
 };
 
 const swaggerDocs = swaggerJsDocs(swaggerOptions);
-
-app.use("/", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -61,19 +58,19 @@ app.use((req, res, next) => {
 
 app.use("/auth", authRouter);
 
+app.use("/", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
+
 app.use((error, req, res, next) => {
-  console.log(error);
   const status = error.statusCode || 500;
   const message = error.message;
   const data = error.data;
-  res.status(status).json({ message: message, data: data });
+  res.status(status).json({ message: message, data: data[0].msg });
 });
 
 app.use(errorController.get404);
 
 const port = process.env.PORT || 8000;
 
-// app.listen(8080);
 app.listen(port, () => {
   console.log("App is running on port " + port);
 });

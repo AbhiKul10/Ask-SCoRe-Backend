@@ -37,16 +37,17 @@ exports.send_message = async (req, res, next) => {
 
 exports.signup = async (req, res, next) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error("Validation Failed");
-    error.statusCode = 422;
-    error.data = errors.array();
-    throw error;
-  }
-  const email = req.body.email;
-  const password = req.body.password;
-  const name = req.body.name;
   try {
+    if (!errors.isEmpty()) {
+      const error = new Error("Validation Failed");
+      error.statusCode = 422;
+      error.data = errors.array();
+      throw error;
+    }
+    const email = req.body.email;
+    const password = req.body.password;
+    const name = req.body.name;
+
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = new User(null, email, hashedPassword, name);
     const result = await user.save();
@@ -163,12 +164,6 @@ exports.postRef = async (req, res, next) => {
   }
 };
 
-exports.resetP = (req, res, next) => {
-  res.status(201).json({
-    message: "Hi!",
-  });
-};
-
 exports.postForgot = async (req, res, next) => {
   const email = req.body.email;
   let dUser;
@@ -209,7 +204,6 @@ exports.postForgot = async (req, res, next) => {
 exports.resetPass = async (req, res, next) => {
   const { fToken } = req.params;
   res.render("reset-pass");
-  // res.send(req.params);
 };
 
 exports.resetPostPass = async (req, res, next) => {
