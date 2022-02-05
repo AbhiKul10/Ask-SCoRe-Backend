@@ -14,7 +14,7 @@ let createTable = `CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255) NOT NULL,
   name VARCHAR(45) NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE INDEX id_UNIQUE (id ASC) VISIBLE);`;
+  UNIQUE INDEX id_UNIQUE (id ASC))`
 
 pool.execute(createTable);
 
