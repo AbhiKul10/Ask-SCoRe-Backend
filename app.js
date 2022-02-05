@@ -34,6 +34,7 @@ const swaggerOptions = {
           type: "http",
           scheme: "bearer",
           bearerFormat: "JWT",
+          in: "header",
         },
       },
     },
@@ -64,7 +65,7 @@ app.use((error, req, res, next) => {
   const status = error.statusCode || 500;
   const message = error.message;
   const data = error.data;
-  res.status(status).json({ message: message, data: data[0].msg });
+  res.status(status).json({ message: message, data: data });
 });
 
 app.use(errorController.get404);
