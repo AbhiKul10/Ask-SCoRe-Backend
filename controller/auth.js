@@ -11,17 +11,16 @@ const {
 } = require("../helpers/jwt_helper");
 const router = require("../routes/auth");
 const nodemailer = require("nodemailer");
-const sendgridtransport = require("nodemailer-sendgrid-transport");
 const { updatePassword } = require("../models/user");
+const { google } = require("googleapis");
+require("dotenv").config();
 
-const transport = nodemailer.createTransport(
-  sendgridtransport({
-    auth: {
-      api_key:
-        "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",
-    },
-  })
+const oAuth2Client = new google.auth.OAuth2(
+  process.env.CLIENT_ID,
+  process.env.CLIENT_SECRET,
+  process.env.REDIRCT_URI
 );
+oAuth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
 
 exports.send_message = async (req, res, next) => {
   try {
@@ -31,7 +30,9 @@ exports.send_message = async (req, res, next) => {
       console.log(element.name);
     });
   } catch (err) {
-    console.log(error);
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
   }
 };
 
@@ -51,12 +52,6 @@ exports.signup = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = new User(null, email, hashedPassword, name);
     const result = await user.save();
-    // transport.sendMail({
-    //   to: email,
-    //   from: "abhikulshrestha11@gmail.com",
-    //   subject: "SignUp Success",
-    //   html: "<h1>Welcome To Ask-SCoRe</h1>",
-    // });
     res.status(201).json({
       message: "User Created!",
     });
@@ -82,7 +77,6 @@ exports.login = async (req, res, next) => {
       throw error;
     }
     loadedUser = user;
-    //   console.log(user[0][0].password);
     const isEqual = await bcrypt.compare(password, user[0][0].password);
     // })
     // .then((isEqual) => {
@@ -170,7 +164,6 @@ exports.postForgot = async (req, res, next) => {
 
   try {
     const user = await User.findByEmail(email);
-    console.log(user);
     if (user[0].length == 0) {
       const error = new Error("User not Found!");
       error.statusCode = 401;
@@ -179,15 +172,29 @@ exports.postForgot = async (req, res, next) => {
     dUser = user;
 
     const fToken = await signForgotToken(dUser[0][0].id, dUser[0][0].email);
-    await transport.sendMail({
-      to: email,
-      from: "abhikulshrestha11@gmail.com",
-      subject: "SignUp Success",
-      html: `
+    const accessToken = await oAuth2Client.getAccessToken();
+
+    await nodemailer
+      .createTransport({
+        service: "gmail",
+        auth: {
+          type: "OAuth2",
+          user: "abhikulshrestha1@gmail.com",
+          clientId: process.env.CLIENT_ID,
+          clientSecret: process.env.CLIENT_SECRET,
+          refreshToken: process.env.REFRESH_TOKEN,
+          accessToken: accessToken,
+        },
+      })
+      .sendMail({
+        to: email,
+        from: "Ask-SCoRe <abhikulshrestha1@gmail.com>",
+        subject: "SignUp Success",
+        html: `
       <p>You Requested for password Reset</p>
-      <h5>click this <a href="http://localhost:8080/auth/reset-password/${fToken}">link</a>to reset the password</h5>
+      <h5>click this <a href="http://localhost:8000/auth/reset-password/${fToken}">link</a> to reset the password</h5>
       `,
-    });
+      });
 
     res.status(201).json({
       fToken: fToken,
