@@ -8,10 +8,11 @@ const {
   verifyRefreshToken,
   signForgotToken,
   verifyJwtToken,
+  signVerifyToken,
 } = require("../helpers/jwt_helper");
 const router = require("../routes/auth");
 const nodemailer = require("nodemailer");
-const { updatePassword } = require("../models/user");
+const { updatePassword, verifyTheUser } = require("../models/user");
 const { google } = require("googleapis");
 require("dotenv").config();
 
@@ -48,12 +49,41 @@ exports.signup = async (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
     const name = req.body.name;
+    const isVerified = false;
 
+    const fToken = await signVerifyToken(email);
+    const accessToken = await oAuth2Client.getAccessToken();
     const hashedPassword = await bcrypt.hash(password, 12);
-    const user = new User(null, email, hashedPassword, name);
+    const user = new User(null, email, hashedPassword, name, isVerified);
     const result = await user.save();
+
+    console.log(fToken);
+
+    await nodemailer
+      .createTransport({
+        service: "gmail",
+        auth: {
+          type: "OAuth2",
+          user: "abhikulshrestha1@gmail.com",
+          clientId: process.env.CLIENT_ID,
+          clientSecret: process.env.CLIENT_SECRET,
+          refreshToken: process.env.REFRESH_TOKEN,
+          accessToken: accessToken,
+        },
+      })
+      .sendMail({
+        to: email,
+        from: "Ask-SCoRe <abhikulshrestha1@gmail.com>",
+        subject: "Verify Your Account!",
+        html: `
+      <p>VERIFY YOUR ACCOUNT</p>
+      <h5>click this <a href="http://localhost:8000/auth/verify/${fToken}">link</a> to verify your account</h5>
+      `,
+      });
+
     res.status(201).json({
       message: "User Created!",
+      message1: "Verification Email has been sent to your Email! Please Verify",
     });
     console.log("User Created!");
   } catch (err) {
@@ -69,6 +99,8 @@ exports.login = async (req, res, next) => {
   const password = req.body.password;
   let loadedUser;
   try {
+    // const userStatus = await User.findUserStatus(email);
+
     const user = await User.findByEmail(email);
     // .then((user) => {
     if (user[0].length == 0) {
@@ -76,6 +108,13 @@ exports.login = async (req, res, next) => {
       error.statusCode = 401;
       throw error;
     }
+
+    if (!user[0][0].isVerified) {
+      const error = new Error("User not Verified, Please Check your mail!");
+      error.statusCode = 402;
+      throw error;
+    }
+
     loadedUser = user;
     const isEqual = await bcrypt.compare(password, user[0][0].password);
     // })
@@ -232,6 +271,28 @@ exports.resetPostPass = async (req, res, next) => {
     res.status(201).json({
       message: "Updated!",
     });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.checkVerification = async (req, res, next) => {
+  const { fToken } = req.params;
+  const isVerified = true;
+
+  try {
+    const userId = await verifyJwtToken(fToken);
+    console.log(userId.email);
+
+    const result = await verifyTheUser(isVerified, userId.email);
+
+    res.status(201).json({
+      message: "User Verified!",
+    });
+    console.log("user Verified");
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

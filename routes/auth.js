@@ -284,4 +284,6 @@ router.get("/reset-password/:fToken", authController.resetPass);
 
 router.post("/reset-password/:fToken", authController.resetPostPass);
 
+router.get("/verify/:fToken", authController.checkVerification);
+
 module.exports = router;

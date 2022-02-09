@@ -37,6 +37,17 @@ module.exports = {
     return fToken;
   },
 
+  signVerifyToken: (email) => {
+    const fToken = jwt.sign(
+      {
+        email: email,
+      },
+      "secret",
+      { expiresIn: "15m" }
+    );
+    return fToken;
+  },
+
   verifyRefreshToken: (refreshToken) => {
     let decodedRefToken;
     try {
@@ -71,7 +82,7 @@ module.exports = {
       throw error;
     }
     // req.userId = decodedRefToken.userId;
-    console.log(decodedRefToken.userId);
+    console.log(decodedRefToken);
     return decodedRefToken;
   },
 };
