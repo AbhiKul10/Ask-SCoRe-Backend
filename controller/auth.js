@@ -77,7 +77,7 @@ exports.signup = async (req, res, next) => {
         subject: "Verify Your Account!",
         html: `
       <p>VERIFY YOUR ACCOUNT</p>
-      <h5>click this <a href="http://localhost:8000/auth/verify/${fToken}">link</a> to verify your account</h5>
+      <h5>click this <a href="${process.env.VERIFY_URL}/auth/verify/${fToken}">link</a> to verify your account</h5>
       `,
       });
 
